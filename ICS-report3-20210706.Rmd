@@ -1,0 +1,266 @@
+---
+title: 
+  Summary ICS report of Personalised Care interventions in primary care
+header-includes:
+   -  \usepackage[default]{sourcesanspro}
+   -  \usepackage[T1]{fontenc}
+   -  \usepackage{fancyhdr}
+   - \pagestyle{fancy}
+   - \addtolength{\headheight}{1.0cm} % make more space for the header
+   - \pagestyle{fancyplain} % use fancy for all pages except chapter start
+   - \rhead{\includegraphics[height=1.0cm]{RCGP_RSC.jpg}}
+   - \chead{\includegraphics[height=1.0cm]{orchid-logo-04032021.jpg}}
+   - \lhead{\includegraphics[height=1.0cm]{univ-oxford-logo.PNG}}
+   - \renewcommand{\headrulewidth}{0.4pt}
+   - \renewcommand{\footrulewidth}{0.4pt}
+mainfont: SourceSansPro
+author: ""
+date: ""
+output: pdf_document
+
+params:
+  ics: default
+
+---
+
+---
+subtitle: `r params$ics`
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE,fig.align = "center",  dev="cairo_pdf")
+knitr::opts_chunk$set(echo = FALSE,
+                        fig.width = 6,
+                        fig.asp = 0.7,
+                        out.width = "80%", 
+                        dev="cairo_pdf",
+                        warning = FALSE, 
+                        message = FALSE)
+```
+
+
+
+
+```{r, include=FALSE}
+source("ics-data-v2.R", local = knitr::knit_global())
+library(reshape2)
+
+##Set ICS
+ics = params$ics
+
+## Custom theme  for visualisations
+
+theme_sp <- function(base_size = 14) {
+  theme_bw(base_size = base_size) %+replace%
+    theme(
+      # L'ensemble de la figure
+      plot.title = element_text(size = rel(1), face = "bold", margin = margin(0,0,5,0), hjust = 0),
+      # Zone où se situe le graphique
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      # Les axes
+      axis.title = element_text(size = rel(0.85), face = "bold"),
+      axis.text = element_text(size = rel(0.70), face = "bold"),
+      axis.line = element_line(color = "black", arrow = arrow(length = unit(0.3, "lines"), type = "closed")),
+      # La légende
+      legend.title = element_text(size = rel(0.85), face = "bold"),
+      legend.text = element_text(size = rel(0.70), face = "bold"),
+      legend.key = element_rect(fill = "transparent", colour = NA),
+      legend.key.size = unit(1.5, "lines"),
+      legend.background = element_rect(fill = "transparent", colour = NA),
+      # Les étiquettes dans le cas d'un facetting
+      strip.background = element_rect(fill = "#17252D", color = "#17252D"),
+      strip.text = element_text(size = rel(0.85), face = "bold", color = "white", margin = margin(5,0,5,0))
+    )
+}
+
+
+```
+
+It is well established that 80-90\% of health outcomes are linked to social determinants of health. These include health-related behaviours (e.g. tobacco use, alcohol use, diet & exercise, etc.), socioeconomic factors (e.g. education, job status, family/social support, income, etc.) and environmental factors (e.g. air quality, water quality, etc.).  It is also well established that ~20\% of patients go to their general practitioner for primarily social problems. 
+
+Social prescribing aims to address social determinants of health. NHS England describes social prescribing as “a way for local agencies to refer people to a link worker. Link workers give people time, focusing on ‘what matters to me’ and taking a holistic approach to people’s health and wellbeing. They connect people to community groups and statutory services for practical and emotional support.” Social prescriptions are varied and include activities focused on health, education, skills development, sports and leisure/art activities.
+
+To support a learning health system approach for your ICS, ORCHID has prepared the following report to provide an overview of individuals receiving social prescribing interventions in GP practices (all of which are members of the RCGP Research Surveillance Centre) within your ICS for the last quarter of the 2019-2020 financial year (i.e. 2019 Q4) and four quarters of the 2020-2021 financial year (i.e. 2020 Q1-Q4). Reference data is also presented for the national average.  
+
+Interactive visualisations can be found at: https://orchid.phc.ox.ac.uk/index.php/social-prescribing/ 
+
+All ICS reports can be found at: https://orchid.phc.ox.ac.uk/index.php/social-prescribing-reports/ 
+
+For any queries, please feel free to contact Anant Jani <anant.r.jani@gmail.com>
+
+\textit{Acknowledgments: General Practices (all of which are members of the RCGP Research Surveillance Centre, a sentinel network of >1900 nationally representative GP practices spread across England) who volunteer to be part of the RCGP RSC network and allow us to extract and used health data for surveillance, quality improvement and research. Patients for allowing their data to be used for surveillance and research.The funding for this project was provided by NHS-E. }
+
+\textit{ NB:For low numbers of events (as indicated by low rates per 10,000 - the numbers on the vertical/y-axis), it is important to note that the data does not represent a large enough sample size to draw meaningful conclusions apart from the fact that there is very little activity happening in these areas.}
+
+\center{
+Data source: Oxford-RCGP Clinical Informatics Digital Hub (ORCHID) (https://orchid.phc.ox.ac.uk/) / [RCGP RSC](https://www.rcgp.org.uk/clinical-and-research/our-programmes/research-and-surveillance-centre.aspx)
+
+}
+
+
+## Referral to benefits agency
+
+```{r socialneed-benefits}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_benefit_rate, nat_mean_benefit_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+
+## Referral to physical activity programme
+
+
+```{r socialneed-physical-activity}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_physical_rate, nat_mean_physical_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Referral to arts therapy service
+
+
+```{r socialneed-arts-therapy}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_arts_rate, nat_mean_arts_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Social prescribing for mental health
+
+```{r socialneed-mental-health}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_sp4mh_rate, nat_mean_sp4mh_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Health education offered
+
+```{r socialneed-he-offered}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_heoffer_rate, nat_mean_heoffer_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+\newpage 
+
+# Social prescribing
+
+## Social prescribing referrals
+
+```{r socialneed-referrals}
+
+  dfSocialPrescribing<-as.data.frame(mergedSocialPrescribing )
+  df1 <- dfSocialPrescribing %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_ref_rate, nat_mean_ref_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Social prescribing declines
+
+```{r socialneed-declines}
+
+  dfSocialPrescribing<-as.data.frame(mergedSocialPrescribing )
+  df1 <- dfSocialPrescribing %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_dec_rate, nat_mean_dec_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```

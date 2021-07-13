@@ -1,0 +1,985 @@
+---
+title: 
+  Full ICS report of Personalised Care interventions in primary care
+header-includes:
+   -  \usepackage[default]{sourcesanspro}
+   -  \usepackage[T1]{fontenc}
+   -  \usepackage{fancyhdr}
+   - \pagestyle{fancy}
+   - \addtolength{\headheight}{1.0cm} % make more space for the header
+   - \pagestyle{fancyplain} % use fancy for all pages except chapter start
+   - \rhead{\includegraphics[height=1.0cm]{RCGP_RSC.jpg}}
+   - \chead{\includegraphics[height=1.0cm]{orchid-logo-04032021.jpg}}
+   - \lhead{\includegraphics[height=1.0cm]{univ-oxford-logo.PNG}}
+   - \renewcommand{\headrulewidth}{0.4pt}
+   - \renewcommand{\footrulewidth}{0.4pt}
+mainfont: SourceSansPro
+author: ""
+date: ""
+output: pdf_document
+
+params:
+  ics: default
+
+---
+
+---
+subtitle: `r params$ics`
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE,fig.align = "center",  dev="cairo_pdf")
+knitr::opts_chunk$set(echo = FALSE,
+                        fig.width = 7,
+                        fig.asp = 0.7,
+                        out.width = "80%", 
+                        dev="cairo_pdf",
+                        warning = FALSE, 
+                        message = FALSE)
+```
+
+
+
+
+```{r, include=FALSE}
+source("ics-data-v2.R", local = knitr::knit_global())
+library(reshape2)
+
+##Set ICS
+ics = params$ics
+
+## Custom theme  for visualisations
+
+theme_sp <- function(base_size = 14) {
+  theme_bw(base_size = base_size) %+replace%
+    theme(
+      # L'ensemble de la figure
+      plot.title = element_text(size = rel(1), face = "bold", margin = margin(0,0,5,0), hjust = 0),
+      # Zone où se situe le graphique
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      # Les axes
+      axis.title = element_text(size = rel(0.85), face = "bold"),
+      axis.text = element_text(size = rel(0.70), face = "bold"),
+      axis.line = element_line(color = "black", arrow = arrow(length = unit(0.3, "lines"), type = "closed")),
+      # La légende
+      legend.title = element_text(size = rel(0.85), face = "bold"),
+      legend.text = element_text(size = rel(0.70), face = "bold"),
+      legend.key = element_rect(fill = "transparent", colour = NA),
+      legend.key.size = unit(1.5, "lines"),
+      legend.background = element_rect(fill = "transparent", colour = NA),
+      # Les étiquettes dans le cas d'un facetting
+      strip.background = element_rect(fill = "#17252D", color = "#17252D"),
+      strip.text = element_text(size = rel(0.85), face = "bold", color = "white", margin = margin(5,0,5,0))
+    )
+}
+
+
+```
+
+It is well established that 80-90\% of health outcomes are linked to social determinants of health. These include health-related behaviours (e.g. tobacco use, alcohol use, diet & exercise, etc.), socioeconomic factors (e.g. education, job status, family/social support, income, etc.) and environmental factors (e.g. air quality, water quality, etc.).  It is also well established that ~20\% of patients go to their general practitioner for primarily social problems. 
+
+Social prescribing aims to address social determinants of health. NHS England describes social prescribing as “a way for local agencies to refer people to a link worker. Link workers give people time, focusing on ‘what matters to me’ and taking a holistic approach to people’s health and wellbeing. They connect people to community groups and statutory services for practical and emotional support.” Social prescriptions are varied and include activities focused on health, education, skills development, sports and leisure/art activities.
+
+To support a learning health system approach for your ICS, ORCHID has prepared the following report to provide an overview of individuals receiving social prescribing interventions in GP practices (all of which are members of the RCGP Research Surveillance Centre) within your ICS across different dimensions including: time [for the last quarter of the 2019-2020 financial year (i.e. 2019 Q4) and four quarters of the 2020-2021 financial year (i.e. 2020 Q1-Q4)]; gender; age; ethnicity; Index of Multiple Deprivation (IMD). Reference data is also presented for the Nat'l avg across all groups.  
+
+Interactive visualisations can be found at: https://orchid.phc.ox.ac.uk/index.php/social-prescribing/ 
+
+All ICS reports can be found at: https://orchid.phc.ox.ac.uk/index.php/social-prescribing-reports/ 
+
+For any queries, please feel free to contact Anant Jani <anant.r.jani@gmail.com>
+
+\textit{Acknowledgments: General Practices (all of which are members of the RCGP Research Surveillance Centre, a sentinel network of >1900 nationally representative GP practices spread across England) who volunteer to be part of the RCGP RSC network and allow us to extract and used health data for surveillance, quality improvement and research. Patients for allowing their data to be used for surveillance and research. The funding for this project was provided by NHS-E. }
+
+\textit{ NB:For low numbers of events (as indicated by low rates per 10,000 - the numbers on the vertical/y-axis), it is important to note that the data does not represent a large enough sample size to draw meaningful conclusions apart from the fact that there is very little activity happening in these areas.}
+
+\center{
+Data source: Oxford-RCGP Clinical Informatics Digital Hub (ORCHID) (https://orchid.phc.ox.ac.uk/) / [RCGP RSC](https://www.rcgp.org.uk/clinical-and-research/our-programmes/research-and-surveillance-centre.aspx)
+
+}
+
+## Referral to benefits agency
+
+```{r socialneed-benefits}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_benefit_rate, nat_mean_benefit_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Referral to benefits agency - Age groups
+
+```{r benefit-agegroups}
+
+dfNationalRate <-dfNationalMean_socialneed%>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_benefit_rate) %>% 
+                          rename(benefit_rate = nat_mean_benefit_rate)
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,benefit_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=benefit_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to benefits agency - Gender
+
+```{r benefits-gender}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,benefit_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=benefit_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to benefits agency - Ethnicity
+
+```{r benefits-ethnicity}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,benefit_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=benefit_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to benefits agency - Index of Multiple Deprivation (IMD)
+
+```{r benefits-IMD}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,benefit_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=benefit_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+\newpage
+
+## Referral to physical activity programme
+
+
+```{r socialneed-physical-activity}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_physical_rate, nat_mean_physical_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Referral to physical activity programme - Age groups
+
+```{r physical-agegroups}
+
+dfNationalRate <-dfNationalMean_socialneed%>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_physical_rate) %>% 
+                          rename(physical_rate = nat_mean_physical_rate)
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,physical_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=physical_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to physical activity programme - Gender
+
+```{r physical-gender}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,physical_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=physical_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to physical activity programme - Ethnicity
+
+```{r physical-ethnicity}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,physical_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=physical_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to physical activity programme - Index of Multiple Deprivation (IMD)
+
+```{r physical-IMD}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,physical_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=physical_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+\newpage
+
+## Referral to arts therapy service
+
+
+```{r socialneed-arts-therapy}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_arts_rate, nat_mean_arts_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Referral to arts therapy service - Age groups
+
+```{r arts-agegroups}
+
+dfNationalRate <-dfNationalMean_socialneed%>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_arts_rate) %>% 
+                          rename(arts_rate = nat_mean_arts_rate)
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,arts_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=arts_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to arts therapy service - Gender
+
+```{r arts-gender}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,arts_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=arts_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to arts therapy service - Ethnicity
+
+```{r arts-ethnicity}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,arts_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=arts_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Referral to arts therapy service - Index of Multiple Deprivation (IMD)
+
+```{r arts-IMD}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,arts_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=arts_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+\newpage
+
+## Social prescribing for mental health
+
+```{r socialneed-mental-health}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_sp4mh_rate, nat_mean_sp4mh_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+
+## Social prescribing for mental health - Age groups
+
+```{r sp4mh-agegroups}
+
+dfNationalRate <-dfNationalMean_socialneed%>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_sp4mh_rate) %>% 
+                          rename(sp4mh_rate = nat_mean_sp4mh_rate)
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,sp4mh_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=sp4mh_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing for mental health - Gender
+
+```{r sp4mh-gender}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,sp4mh_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=sp4mh_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing for mental health - Ethnicity
+
+```{r sp4mh-ethnicity}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,sp4mh_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=sp4mh_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing for mental health - Index of Multiple Deprivation (IMD)
+
+```{r sp4mh-IMD}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,sp4mh_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=sp4mh_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+\newpage
+
+## Health education offered
+
+```{r socialneed-he-offered}
+
+  dfSocialNeed<-as.data.frame(mergedSociaNeed)
+  df1 <- dfSocialNeed %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_heoffer_rate, nat_mean_heoffer_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+
+## Health education offered - Age groups
+
+```{r he-offered-agegroups}
+
+dfNationalRate <-dfNationalMean_socialneed%>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_heoffer_rate) %>% 
+                          rename(heoffer_rate = nat_mean_heoffer_rate)
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,heoffer_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=heoffer_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Health education offered - Gender
+
+```{r he-offered-gender}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,heoffer_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=heoffer_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Health education offered- Ethnicity
+
+```{r he-offered-ethnicity}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,heoffer_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=heoffer_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Health education offered - Index of Multiple Deprivation (IMD)
+
+```{r he-offered-IMD}
+
+df1<-dfICSReport_CD %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,heoffer_rate ) %>% 
+  bind_rows(.,dfNationalRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=heoffer_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df1$qtr), to = max(df1$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+\newpage 
+
+# Social prescribing
+
+## Social prescribing referrals
+
+```{r socialneed-referrals}
+
+  dfSocialPrescribing<-as.data.frame(mergedSocialPrescribing )
+  df1 <- dfSocialPrescribing %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_ref_rate, nat_mean_ref_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+
+
+
+```{r NationalTable-creation}
+
+#creating ref/dec tables for Nat'l avg across all groupss
+
+dfNationalRefRate <-dfNationalMean_socialprescribing %>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_ref_rate) %>% 
+                          rename(ref_rate = nat_mean_ref_rate)
+
+dfNationalDecRate <-dfNationalMean_socialprescribing %>% 
+                          mutate(cat_val="National") %>% 
+                          select(qtr,cat_val, nat_mean_dec_rate) %>% 
+                          rename(dec_rate = nat_mean_dec_rate)
+```
+
+## Social prescribing referrals - Age groups
+
+```{r referrals-agegroups}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,ref_rate ) %>% 
+  bind_rows(.,dfNationalRefRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=ref_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing referrals - Gender
+
+```{r referrals-gender}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,ref_rate ) %>% 
+  bind_rows(.,dfNationalRefRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=ref_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing referrals - Ethnicity
+
+```{r referrals-ethnicity}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,ref_rate ) %>% 
+  bind_rows(.,dfNationalRefRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=ref_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing referrals - Index of Multiple Deprivation (IMD)
+
+```{r referrals-IMD}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,ref_rate ) %>% 
+  bind_rows(.,dfNationalRefRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=ref_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+\newpage
+
+## Social prescribing declines
+
+```{r socialneed-declines}
+
+  dfSocialPrescribing<-as.data.frame(mergedSocialPrescribing )
+  df1 <- dfSocialPrescribing %>%
+    filter(ics_name==ics) %>%
+    select(qtr, mean_dec_rate, nat_mean_dec_rate)
+  df2 <- melt(df1, id.vars = 'qtr')
+  ggplot(df2, aes(x=qtr, y=value, fill=variable)) +
+    geom_bar(stat='identity', position='dodge') +
+    theme_sp() +
+    xlab("Financial Quarter") +
+    ylab("Mean weekly rate/10,000")+
+    guides(fill=guide_legend(title=""))+
+    scale_fill_discrete(labels = c("ICS", "National"))+
+    scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                    format = "%Y Q%q")  +
+    theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+
+```
+
+## Social prescribing declines - Age groups
+
+```{r declines-agegroups}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Age" & ics_name==ics ) %>% 
+  select(qtr, cat_val,dec_rate ) %>% 
+  bind_rows(.,dfNationalDecRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=dec_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: 1-17","ICS average: 18-39","ICS average: 40-64","ICS average: 65+", "Nat'l avg across all groups"),
+                       values=c("red","green","blue","orange", "black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing declines - Gender
+
+```{r declines-gender}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Gender" & ics_name==ics ) %>% 
+  select(qtr, cat_val,dec_rate ) %>% 
+  bind_rows(.,dfNationalDecRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=dec_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Female","ICS average: Male", "Nat'l avg across all groups"),
+                       values=c("red","blue","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing declines - Ethnicity
+
+```{r declines-ethnicity}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="Ethnicity" & ics_name==ics ) %>% 
+  select(qtr, cat_val,dec_rate ) %>% 
+  bind_rows(.,dfNationalDecRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=dec_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: Asian","ICS average: Black", "ICS average: Mixed",
+                                 "Nat'l avg across all groups", "ICS average: Other", "ICS average:Unknown",
+                                "ICS average: White"),
+                       values=c("lightcoral","lightsalmon2","mediumseagreen","black",
+                                "lightskyblue", "mediumpurple", "maroon3"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+
+## Social prescribing declines - Index of Multiple Deprivation (IMD)
+
+```{r declines-imd}
+
+df1<-dfICSReport_A %>% 
+  filter(cat=="IMD" & ics_name==ics ) %>% 
+  select(qtr, cat_val,dec_rate ) %>% 
+  bind_rows(.,dfNationalDecRate) %>% 
+  group_by(cat_val)
+
+  ggplot(df1,aes(x=qtr,y=dec_rate, group=cat_val,color=cat_val)) +
+  geom_line(size=1.5) +
+  theme_sp() +
+  xlab("Financial Quarter") +
+  ylab("Mean weekly rate/10,000")+
+    theme(legend.title=element_blank())+
+  scale_color_manual(labels = c("ICS average: IMD=1","ICS average: IMD=2", "ICS average: IMD=3",
+                                 "ICS average: IMD=4", "ICS average: IMD=5","Nat'l avg across all groups"),
+                       values=c("lightsalmon2","mediumseagreen", "lightskyblue", "mediumpurple", "maroon3","black"))+
+  scale_x_yearqtr(breaks = seq(from = min(df2$qtr), to = max(df2$qtr), by = 0.25),
+                  format = "%Y Q%q")  +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
